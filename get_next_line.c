@@ -4,7 +4,6 @@ static char	*read_from_fd(int fd, char *buffer, char *remainder)
 {
 	int		bytes_read;
 	char	*temp;
-	char	*newline_pos;
 
 	bytes_read = 1;
 	while (bytes_read != 0)
