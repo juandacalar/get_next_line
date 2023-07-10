@@ -1,70 +1,68 @@
 #include "get_next_line.h"
 
-#include <unistd.h>
-#include <stdlib.h>
-
-static char	*join_and_split(char **remainder, char *buffer)
+static char	*read_from_fd(int fd, char *buffer, char *remainder)
 {
-	char	*line;
+	int		bytes_read;
 	char	*temp;
 	char	*newline_pos;
 
-	temp = ft_strjoin(*remainder, buffer);
-	free(*remainder);
-	*remainder = temp;
-	newline_pos = ft_strchr(*remainder, '\n');
-	if (newline_pos)
+	bytes_read = 1;
+	while (bytes_read != 0)
 	{
-		*newline_pos = '\0';
-		line = ft_strdup(*remainder);
-		temp = ft_strdup(newline_pos + 1);
-		free(*remainder);
-		*remainder = temp;
-		return (line);
+		bytes_read = read(fd, buffer, BUFFER_SIZE);
+		if (bytes_read == -1)
+			return (NULL);
+		else if (bytes_read == 0)
+			break;
+		buffer[bytes_read] = '\0';
+		if (!remainder)
+			remainder = ft_strdup("");
+		temp = remainder;
+		remainder = ft_strjoin(temp, buffer);
+		free(temp);
+		temp = NULL;
+		if (ft_strchr(buffer, '\n'))
+			break;
 	}
-	return (NULL);
+	return (remainder);
 }
 
-static char	*read_from_fd(int fd, char **remainder)
+static char	*extract_line(char *line)
 {
-	char	buffer[BUFFER_SIZE + 1];
-	int		bytes_read;
-	char	*line;
+	size_t	line_length;
+	char	*remaining;
 
-	while ((bytes_read = read(fd, buffer, BUFFER_SIZE)) > 0)
-	{
-		buffer[bytes_read] = '\0';
-		line = join_and_split(remainder, buffer);
-		if (line)
-			return (line);
-	}
-	if (bytes_read == -1 || (bytes_read == 0 && !*remainder))
-	{
-		free(*remainder);
-		*remainder = NULL;
+	line_length = 0;
+	while (line[line_length] != '\n' && line[line_length] != '\0')
+		line_length++;
+	if (line[line_length] == '\0' || line[1] == '\0')
 		return (NULL);
+	remaining = ft_substr(line, line_length + 1, ft_strlen(line) - line_length);
+	if (*remaining == '\0')
+	{
+		free(remaining);
+		remaining = NULL;
 	}
-	return (NULL);
+	line[line_length + 1] = '\0';
+	return (remaining);
 }
 
 char	*get_next_line(int fd)
 {
-	static char	*remainder;
 	char		*line;
+	char		*buffer;
+	static char	*remainder;
 
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
-
-	line = read_from_fd(fd, &remainder);
-	if (line)
-		return (line);
-
-	if (remainder)
-	{
-		line = remainder;
-		remainder = NULL;
-		return (line);
-	}
-
-	return (NULL);
+	buffer = (char *)malloc(sizeof(char) * (BUFFER_SIZE + 1));
+	if (!buffer)
+		return (NULL);
+	line = read_from_fd(fd, buffer, remainder);
+	free(buffer);
+	buffer = NULL;
+	if (!line)
+		return (NULL);
+	remainder = extract_line(line);
+	return (line);
 }

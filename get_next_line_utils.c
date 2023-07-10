@@ -1,10 +1,32 @@
 #include "get_next_line.h"
 
-#include <stdlib.h>
-
-size_t	ft_strlen(const char *s)
+char	*ft_substr(char const *s, unsigned int start, size_t len)
 {
-	size_t len;
+	size_t	i;
+	size_t	j;
+	char	*str;
+
+	str = (char *)malloc(sizeof(*s) * (len + 1));
+	if (str == 0)
+		return (NULL);
+	i = 0;
+	j = 0;
+	while (s[i])
+	{
+		if (i >= start && j < len)
+		{
+			str[j] = s[i];
+			j++;
+		}
+		i++;
+	}
+	str[j] = 0;
+	return (str);
+}
+
+int	ft_strlen(const char *s)
+{
+	int len;
 
 	len = 0;
 	while (s[len] != '\0')
@@ -14,30 +36,27 @@ size_t	ft_strlen(const char *s)
 
 char	*ft_strjoin(char const *s1, char const *s2)
 {
-	char	*result;
-	size_t	len_s1;
-	size_t	len_s2;
-	size_t	i;
-	size_t	j;
+	int		i;
+	int		j;
+	char	*str;
 
-	if (!s1 || !s2)
-		return (NULL);
-	len_s1 = ft_strlen(s1);
-	len_s2 = ft_strlen(s2);
-	result = (char *)malloc((len_s1 + len_s2 + 1) * sizeof(char));
-	if (!result)
-		return (NULL);
 	i = 0;
-	while (i < len_s1)
+	j = 0;
+	str = (char *)malloc(sizeof(char) * (ft_strlen(s1) + ft_strlen(s2) + 1));
+	if (str == NULL)
+		return (NULL);
+	while (s1[i] != '\0')
 	{
-		result[i] = s1[i];
+		str[i] = s1[i];
 		i++;
 	}
-	j = 0;
-	while (j < len_s2)
-		result[i++] = s2[j++];
-	result[i] = '\0';
-	return (result);
+	while (s2[j] != '\0')
+	{
+		str[i + j] = s2[j];
+		j++;
+	}
+	str[i + j] = '\0';
+	return (str);
 }
 
 char	*ft_strdup(const char *str)
@@ -46,16 +65,17 @@ char	*ft_strdup(const char *str)
 	size_t	length;
 	size_t	i;
 
+	i = 0;
 	length = ft_strlen(str);
-	duplicate = (char *)malloc((length + 1) * sizeof(char));
+	duplicate = (char *)malloc((length + 1) * sizeof(*duplicate));
 	if (!duplicate)
 		return (NULL);
-	i = 0;
-	while (i <= length)
+	while (i < length)
 	{
 		duplicate[i] = str[i];
 		i++;
 	}
+	duplicate[i] = '\0';
 	return (duplicate);
 }
 
